@@ -31,4 +31,31 @@ class PhotoService {
       print(e);
     }
   }
+
+  Future<List<Photo>?> getPhotosByKeyword(String query, [int page = 1]) async {
+    Map<String, dynamic> params = {
+      'client_id': accessKey,
+      'page': page,
+      'query': query,
+    };
+    try {
+      Response response = await _dio.get(
+        '$apiPath/search/photos',
+        queryParameters: params,
+      );
+      if (response.statusCode == 200) {
+        if (response.data != null) {
+          List<Photo> photos = [];
+          for (var item in response.data['results']) {
+            photos.add(Photo.fromJson(item));
+          }
+          return photos;
+        }
+      } else {
+        print('Error with status code: ${response.statusCode}');
+      }
+    } on DioError catch (e) {
+      print(e);
+    }
+  }
 }
