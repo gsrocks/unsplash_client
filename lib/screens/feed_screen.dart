@@ -1,4 +1,10 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:unsplash_client/bloc/photo_bloc.dart';
+import 'package:unsplash_client/bloc/photo_event.dart';
+import 'package:unsplash_client/bloc/photo_state.dart';
 import 'package:unsplash_client/constants/styles.dart';
 
 class FeedScreen extends StatefulWidget {
@@ -10,31 +16,61 @@ class FeedScreen extends StatefulWidget {
 
 class _FeedScreenState extends State<FeedScreen> {
   bool isSearchMode = false;
+  final searchTextController = TextEditingController();
+
+  @override
+  void dispose() {
+    searchTextController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: isSearchMode ? searchAppbar(context) : defaultAppbar(context),
+      body: BlocBuilder<PhotoBloc, PhotoState>(
+        builder: (context, state) {
+          if (state is PhotoStateEmpty) {
+            loadPhotos();
+            return Center(child: CircularProgressIndicator());
+          } else if (state is PhotoStateInProgress) {
+            return Center(child: CircularProgressIndicator());
+          } else if (state is PhotoStateFailed) {
+            return Center(
+              child: Text('An error occurred'),
+            );
+          } else if (state is PhotoStateSuccess) {
+            return ListView.builder(
+                itemCount: state.photos.length,
+                itemBuilder: (context, i) {
+                  return Image.network(
+                    state.photos[i].small,
+                  );
+                });
+          } else {
+            return Center(
+              child: Text('An error occurred'),
+            );
+          }
+        },
+      ),
     );
   }
 
-  void onSearchPressed() {
-    setState(() {
-      isSearchMode = true;
-    });
+  void loadPhotos() {
+    final rand = Random();
+    BlocProvider.of<PhotoBloc>(context).add(PhotoEventGetPhotos(
+      page: rand.nextInt(100),
+    ));
   }
 
   void onSearchSubmitted(String input) {
-    if(input.trim().isNotEmpty) {
-      //TODO: Implement search
-      setState(() {
-        isSearchMode = false;
-      });
-    } else {
-      setState(() {
-        isSearchMode = false;
-      });
+    if (input.trim().isNotEmpty) {
+      BlocProvider.of<PhotoBloc>(context).add(PhotoEventSearch(
+          query: input.trim(),
+      ));
     }
+    setState(() => isSearchMode = false);
   }
 
   PreferredSizeWidget defaultAppbar(BuildContext context) {
@@ -43,7 +79,7 @@ class _FeedScreenState extends State<FeedScreen> {
           style: Theme.of(context).primaryTextTheme.headline6),
       actions: [
         IconButton(
-            onPressed: onSearchPressed,
+            onPressed: () => setState(() => isSearchMode = true),
             icon: Icon(Icons.search, color: primaryColor)),
       ],
     );
@@ -53,10 +89,11 @@ class _FeedScreenState extends State<FeedScreen> {
     return AppBar(
       title: TextFormField(
         autofocus: true,
+        controller: searchTextController,
         onFieldSubmitted: onSearchSubmitted,
         decoration: InputDecoration(
           border: InputBorder.none,
-          labelText: 'Search',
+          hintText: 'Search',
         ),
       )
     );
