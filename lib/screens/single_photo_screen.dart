@@ -12,7 +12,7 @@ class SinglePhotoScreen extends StatelessWidget {
         direction: DismissDirection.vertical,
         onDismissed: (_) => Navigator.of(context).pop(),
         key: Key('PhotoScreen'),
-        child: Container(
+        child: InteractiveViewer(
           child: Image.network(
             photo.full,
             loadingBuilder: (BuildContext context, Widget child,
@@ -29,7 +29,7 @@ class SinglePhotoScreen extends StatelessWidget {
                 ),
               );
             },
-          )
+          ),
         )
     );
   }
