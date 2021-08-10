@@ -28,33 +28,40 @@ class _FeedScreenState extends State<FeedScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: isSearchMode ? searchAppbar(context) : defaultAppbar(context),
-      body: BlocBuilder<PhotoBloc, PhotoState>(
-        builder: (context, state) {
-          if (state is PhotoStateEmpty) {
-            loadPhotos();
-            return Center(child: CircularProgressIndicator());
-          } else if (state is PhotoStateInProgress) {
-            return Center(child: CircularProgressIndicator());
-          } else if (state is PhotoStateFailed) {
-            return Center(
-              child: Text('An error occurred'),
-            );
-          } else if (state is PhotoStateSuccess) {
-            return ListView.builder(
-                itemCount: state.photos.length,
-                itemBuilder: (context, i) {
-                  return Image.network(
-                    state.photos[i].small,
-                  );
-                });
-          } else {
-            return Center(
-              child: Text('An error occurred'),
-            );
-          }
-        },
+      body: RefreshIndicator(
+        onRefresh: onRefresh,
+        child: BlocBuilder<PhotoBloc, PhotoState>(
+          builder: (context, state) {
+            if (state is PhotoStateEmpty) {
+              loadPhotos();
+              return Center(child: CircularProgressIndicator());
+            } else if (state is PhotoStateInProgress) {
+              return Center(child: CircularProgressIndicator());
+            } else if (state is PhotoStateFailed) {
+              return Center(
+                child: Text('An error occurred'),
+              );
+            } else if (state is PhotoStateSuccess) {
+              return ListView.builder(
+                  itemCount: state.photos.length,
+                  itemBuilder: (context, i) {
+                    return Image.network(
+                      state.photos[i].small,
+                    );
+                  });
+            } else {
+              return Center(
+                child: Text('An error occurred'),
+              );
+            }
+          },
+        ),
       ),
     );
+  }
+
+  Future<void> onRefresh() async {
+    loadPhotos();
   }
 
   void loadPhotos() {
