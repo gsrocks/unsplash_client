@@ -6,6 +6,7 @@ import 'package:unsplash_client/bloc/photo_bloc.dart';
 import 'package:unsplash_client/bloc/photo_event.dart';
 import 'package:unsplash_client/bloc/photo_state.dart';
 import 'package:unsplash_client/constants/styles.dart';
+import 'package:unsplash_client/screens/single_photo_screen.dart';
 
 class FeedScreen extends StatefulWidget {
   const FeedScreen({Key? key}) : super(key: key);
@@ -45,8 +46,28 @@ class _FeedScreenState extends State<FeedScreen> {
               return ListView.builder(
                   itemCount: state.photos.length,
                   itemBuilder: (context, i) {
-                    return Image.network(
-                      state.photos[i].small,
+                    return InkWell(
+                      onTap: () {
+                        showGeneralDialog(
+                          barrierDismissible: false,
+                          barrierColor: Colors.black.withOpacity(0.8),
+                          transitionDuration: Duration(milliseconds: 200),
+                          context: context,
+                          pageBuilder: (context, anim1, anim2) {
+                            return SinglePhotoScreen(photo: state.photos[i]);
+                          },
+                          transitionBuilder: (context, anim1, anim2, child) {
+                            return SlideTransition(
+                              position: Tween(begin: Offset(0, 1), end: Offset(0, 0))
+                                  .animate(anim1),
+                              child: child,
+                            );
+                          },
+                        );
+                      },
+                      child: Image.network(
+                        state.photos[i].small,
+                      ),
                     );
                   });
             } else {
